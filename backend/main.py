@@ -26,7 +26,8 @@ processor = AudioProcessor(output_dir="temp_audio")
 mixer = SmartMixer()
 
 class ProcessRequest(BaseModel):
-    youtube_url: str
+    youtube_url: str = None
+    audio_url: str = None
 
 class MixRequest(BaseModel):
     input_path: str # Relative path like "temp_audio/recording.wav"
@@ -47,7 +48,7 @@ async def process_audio(request: ProcessRequest):
             try:
                 import modal
                 f = modal.Function.lookup("vocalize-cloud", "process_audio_cloud")
-                result = f.remote(request.youtube_url)
+                result = f.remote(request.youtube_url, request.audio_url)
                 return result
             except ImportError:
                 print("Modal not installed. Falling back to local.")
@@ -55,8 +56,21 @@ async def process_audio(request: ProcessRequest):
                 print(f"Cloud processing failed: {e}. Falling back to local.")
 
         # 1. Download
-        print(f"Downloading {request.youtube_url}...")
-        file_path = processor.download_youtube(request.youtube_url)
+        if request.youtube_url:
+            print(f"Downloading {request.youtube_url}...")
+            file_path = processor.download_youtube(request.youtube_url)
+        elif request.audio_url:
+            print(f"Downloading from URL {request.audio_url}...")
+            # We need a method to download from URL. 
+            # For now, let's assume processor has it or we add it.
+            # Actually, let's just use requests/urllib here or add to processor.
+            import requests
+            response = requests.get(request.audio_url)
+            file_path = os.path.join("temp_audio", "uploaded_file.wav") # simplified
+            with open(file_path, "wb") as f:
+                f.write(response.content)
+        else:
+            raise HTTPException(status_code=400, detail="No URL provided")
         
         # 2. Detect Key
         print("Detecting key...")

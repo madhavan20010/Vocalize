@@ -32,28 +32,39 @@ app = modal.App("vocalize-cloud", image=image)
     secrets=[modal.Secret.from_name("supabase-secret")], # Requires SUPABASE_URL and SUPABASE_KEY
     # mounts=[backend_mount] # Code is in image
 )
-def process_audio_cloud(youtube_url: str):
+def process_audio_cloud(youtube_url: str = None, audio_url: str = None):
     import subprocess
     import shutil
+    import requests
     from pathlib import Path
     # Import from the mounted backend package
     from backend.cloud.supabase_client import SupabaseManager
 
-    print(f"Processing {youtube_url} on Cloud GPU...")
+    print(f"Processing on Cloud GPU...")
     
     # Setup paths
     output_dir = Path("/tmp/audio")
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    # 1. Download with yt-dlp
-    print("Downloading...")
-    cmd = [
-        "yt-dlp",
-        "-x", "--audio-format", "wav",
-        "-o", str(output_dir / "%(title)s.%(ext)s"),
-        youtube_url
-    ]
-    subprocess.run(cmd, check=True)
+    # 1. Download
+    if youtube_url:
+        print(f"Downloading YouTube: {youtube_url}")
+        cmd = [
+            "yt-dlp",
+            "-x", "--audio-format", "wav",
+            "-o", str(output_dir / "%(title)s.%(ext)s"),
+            youtube_url
+        ]
+        subprocess.run(cmd, check=True)
+    elif audio_url:
+        print(f"Downloading File: {audio_url}")
+        response = requests.get(audio_url)
+        # Try to get filename from header or use default
+        filename = "uploaded_song.wav"
+        with open(output_dir / filename, "wb") as f:
+            f.write(response.content)
+    else:
+        return {"status": "error", "message": "No input provided"}
     
     # Find downloaded file
     downloaded_file = next(output_dir.glob("*.wav"))

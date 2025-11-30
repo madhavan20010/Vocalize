@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Play, Pause, RotateCcw, Volume2, Mic, Settings, Sliders, Zap, Music, Mic2, Save, FolderOpen, Download, LogOut, User, Menu, X } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, Mic, Settings, Save, FolderOpen, Share, Loader2, Music, Layers, Wand2, Menu, X, Upload, RotateCcw, Sliders, Zap, Mic2, Download, LogOut, User } from 'lucide-react';
 import { createClient } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { Button } from '../ui/button';
@@ -255,6 +255,68 @@ export default function StudioLayout() {
         }
     };
 
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsImporting(true);
+        setImportProgress(10);
+        setImportStatus('Uploading file...');
+        setError(null);
+
+        try {
+            // 1. Upload to Supabase
+            const filename = `uploads/${Date.now()}_${file.name}`;
+            const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('audio')
+                .upload(filename, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('audio')
+                .getPublicUrl(filename);
+
+            setImportStatus('Processing audio...');
+
+            // 2. Process Audio (Cloud)
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/process`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ audio_url: publicUrl }),
+            });
+
+            if (!res.ok) throw new Error('Processing failed');
+
+            setImportProgress(50);
+            setImportStatus('Separating stems (this may take a moment)...');
+
+            const data = await res.json();
+            if (data.status === 'error') throw new Error(data.message);
+
+            setStems(data.stems);
+            setKey(data.key);
+            setProjectName(file.name.replace(/\.[^/.]+$/, ""));
+
+            setImportProgress(100);
+            setImportStatus('Ready!');
+
+            setTimeout(() => {
+                setIsImporting(false);
+                setIsMobileMenuOpen(false);
+                // Trigger background transcription
+                if (data.stems.vocals) {
+                    fetchLyrics(data.stems.vocals);
+                }
+            }, 500);
+
+        } catch (err) {
+            console.error(err);
+            setError(err instanceof Error ? err.message : 'Upload failed');
+            setIsImporting(false);
+        }
+    };
+
     const handleProcess = async () => {
         if (!url) return;
         setIsImporting(true);
@@ -374,21 +436,36 @@ export default function StudioLayout() {
         <div className={`flex ${mobile ? 'flex-col items-start gap-4 w-full' : 'items-center gap-6'}`}>
             {!stems ? (
                 <div className={`flex ${mobile ? 'flex-col w-full gap-2' : 'items-center gap-2 w-96'}`}>
-                    <input
-                        type="text"
-                        placeholder="Paste YouTube URL..."
-                        className="flex-1 bg-zinc-900 border-zinc-800 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all w-full"
-                        value={url}
-                        onChange={(e) => setUrl(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleProcess()}
-                    />
-                    <Button
-                        onClick={handleProcess}
-                        disabled={!url || isImporting}
-                        className={`rounded-full bg-white text-black hover:bg-zinc-200 font-medium px-6 ${mobile ? 'w-full' : ''}`}
-                    >
-                        Import
-                    </Button>
+                    <div className="flex gap-2 w-full">
+                        <input
+                            type="text"
+                            placeholder="Paste YouTube URL..."
+                            className="flex-1 bg-zinc-800 border-zinc-700 rounded-full px-4 py-2 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                            value={url}
+                            onChange={(e) => setUrl(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleProcess()}
+                        />
+                        <Button
+                            onClick={handleProcess}
+                            disabled={!url || isImporting}
+                            className="rounded-full bg-white text-black hover:bg-zinc-200 font-medium px-6"
+                        >
+                            Import
+                        </Button>
+                        <div className="relative">
+                            <input
+                                type="file"
+                                accept="audio/*"
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                onChange={handleFileUpload}
+                                disabled={isImporting}
+                            />
+                            <Button variant="outline" className="rounded-full border-zinc-700 hover:bg-zinc-800 font-medium px-6">
+                                <Upload className="w-4 h-4 mr-2" />
+                                Upload
+                            </Button>
+                        </div>
+                    </div>
                 </div>
             ) : (
                 <div className={`flex ${mobile ? 'flex-col w-full gap-4' : 'items-center gap-4 bg-zinc-900 rounded-full px-2 py-1 border border-zinc-800'}`}>
