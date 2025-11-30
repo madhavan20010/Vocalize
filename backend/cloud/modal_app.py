@@ -13,23 +13,31 @@ image = (
         "supabase",
         "torch",
         "torchaudio",
-        "ffmpeg-python"
+        "ffmpeg-python",
+        "fastapi",
+        "uvicorn",
+        "python-multipart"
     )
-    .add_local_file("backend/cloud/supabase_client.py", remote_path="/root/supabase_client.py")
+    .add_local_dir("backend", remote_path="/root/backend", ignore=["venv", "__pycache__", "*.pyc", ".DS_Store"])
 )
 
 app = modal.App("vocalize-cloud", image=image)
 
+# Mount not needed as we added to image
+# backend_mount = ...
+
 @app.function(
     gpu="a10g",  # Use A10G GPU for fast processing
     timeout=600, # 10 minutes timeout
-    secrets=[modal.Secret.from_name("supabase-secret")] # Requires SUPABASE_URL and SUPABASE_KEY
+    secrets=[modal.Secret.from_name("supabase-secret")], # Requires SUPABASE_URL and SUPABASE_KEY
+    # mounts=[backend_mount] # Code is in image
 )
 def process_audio_cloud(youtube_url: str):
     import subprocess
     import shutil
     from pathlib import Path
-    from supabase_client import SupabaseManager
+    # Import from the mounted backend package
+    from backend.cloud.supabase_client import SupabaseManager
 
     print(f"Processing {youtube_url} on Cloud GPU...")
     
@@ -93,9 +101,20 @@ def process_audio_cloud(youtube_url: str):
         "status": "success",
         "stems": stems,
         "original_file": orig_url,
-        "key": "C Major" # Placeholder, need to run key detection logic or port it
+        "key": "C Major" # Placeholder
     }
 
-if __name__ == "__main__":
-    # Local test
-    pass
+@app.function(
+    image=image,
+    secrets=[modal.Secret.from_name("supabase-secret")],
+    # mounts=[backend_mount] # Code is in image
+    timeout=600
+)
+@modal.asgi_app()
+def fastapi_app():
+    # Set environment variables for Cloud Mode
+    os.environ["USE_CLOUD_PROCESSING"] = "true"
+    
+    # Import inside the function to avoid local import errors
+    from backend.main import app as web_app
+    return web_app

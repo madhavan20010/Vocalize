@@ -64,3 +64,14 @@ class SupabaseManager:
                 return {"status": "error", "message": "Project not found"}
         except Exception as e:
             return {"status": "error", "message": str(e)}
+    def list_projects(self) -> list:
+        """Lists all projects."""
+        if not self.client:
+            return []
+            
+        try:
+            response = self.client.table("projects").select("*").order("updated_at", desc=True).execute()
+            return response.data
+        except Exception as e:
+            print(f"Supabase list error: {e}")
+            return []

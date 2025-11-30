@@ -103,7 +103,7 @@ export default function StudioLayout() {
         const name = projectName.trim();
 
         try {
-            const res = await fetch('http://localhost:8000/projects/save', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/projects/save`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -130,7 +130,7 @@ export default function StudioLayout() {
 
     const fetchProjects = async () => {
         try {
-            const res = await fetch('http://localhost:8000/projects/list');
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/projects/list`);
             const data = await res.json();
             setSavedProjects(data);
             setShowLoadModal(true);
@@ -143,7 +143,7 @@ export default function StudioLayout() {
 
     const handleLoadProject = async (id: string) => {
         try {
-            const res = await fetch(`http://localhost:8000/projects/load/${id}`);
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/projects/load/${id}`);
             const data = await res.json();
             if (data.status === 'success') {
                 const p = data.data;
@@ -172,7 +172,7 @@ export default function StudioLayout() {
         setIsMobileMenuOpen(false);
 
         try {
-            const res = await fetch('http://localhost:8000/export', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/export`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -232,7 +232,7 @@ export default function StudioLayout() {
         setIsTranscribing(true);
         try {
             console.log('Fetching lyrics for:', vocalsUrl);
-            const res = await fetch('http://localhost:8000/transcribe', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/transcribe`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ audio_url: vocalsUrl }),
@@ -265,7 +265,7 @@ export default function StudioLayout() {
 
         try {
             // 1. Process Audio (Download + Split + Key)
-            const res = await fetch('http://localhost:8000/process', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/process`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ youtube_url: url }),
@@ -337,7 +337,7 @@ export default function StudioLayout() {
         setImportStatus(`Shifting pitch by ${autotuneStrength[0]} semitones...`);
 
         try {
-            const res = await fetch('http://localhost:8000/pitch_shift_stems', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/pitch_shift_stems`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

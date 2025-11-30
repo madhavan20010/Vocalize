@@ -65,7 +65,7 @@ class ProjectManager:
                     # This is a bit hacky, SupabaseManager needs a list_projects method
                     # For now, we'll just return local projects or implement list in SupabaseManager
                     # Let's assume we add list_projects to SupabaseManager
-                    pass 
+                    return sb.list_projects() 
 
             projects = []
             if os.path.exists(PROJECTS_DIR):

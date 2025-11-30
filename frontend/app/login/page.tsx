@@ -96,7 +96,7 @@ export default function LoginPage() {
                         </Button>
                         <Button
                             variant="outline"
-                            className="flex-1 border-zinc-700 hover:bg-zinc-800"
+                            className="flex-1 border-zinc-700 hover:bg-zinc-800 text-white"
                             onClick={handleSignUp}
                             disabled={loading}
                         >
