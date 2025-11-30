@@ -1,0 +1,12 @@
+{
+    "name": "Test Project",
+    "audio_url": "https://www.youtube.com/watch?v=rpIlP6pI8fo",
+    "stems": {
+        "vocals": "path/to/vocals.wav",
+        "drums": "path/to/drums.wav"
+    },
+    "lyrics": [],
+    "key": "C Major",
+    "id": "test_project",
+    "updated_at": "2025-11-29T22:04:15.258781"
+}

@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+backend/venv/
+__pycache__/
+*.pyc
+
+# Environment
+.env
+.env.local
+.DS_Store
+
+# Build
+.next/
+dist/
+build/
+
+# Audio Data
+temp_audio/
+temp_audio_test/
+exports/
+*.mp3
+*.wav
+*.m4a
