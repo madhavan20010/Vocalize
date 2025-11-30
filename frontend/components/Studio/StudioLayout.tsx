@@ -34,6 +34,7 @@ export default function StudioLayout() {
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const wavesurferRefs = useRef<any[]>([]);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const isSeekingRef = useRef(false);
 
     // Mixing State
@@ -359,6 +360,10 @@ export default function StudioLayout() {
         }
     };
 
+    const handleUploadClick = () => {
+        fileInputRef.current?.click();
+    };
+
     // Load stems
     useEffect(() => {
         if (url) {
@@ -452,21 +457,21 @@ export default function StudioLayout() {
                         >
                             Import
                         </Button>
-                        <div className="relative flex items-center">
-                            <input
-                                type="file"
-                                accept="audio/*"
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                onChange={handleFileUpload}
-                                disabled={isImporting}
-                            />
-                            <Button
-                                className="rounded-full bg-zinc-800 text-white hover:bg-zinc-700 border border-zinc-700 font-medium px-6"
-                            >
-                                <Upload className="w-4 h-4 mr-2" />
-                                Upload
-                            </Button>
-                        </div>
+                        <input
+                            type="file"
+                            accept="audio/*"
+                            className="hidden"
+                            ref={fileInputRef}
+                            onChange={handleFileUpload}
+                            disabled={isImporting}
+                        />
+                        <Button
+                            onClick={handleUploadClick}
+                            className="rounded-full bg-zinc-800 text-white hover:bg-zinc-700 border border-zinc-700 font-medium px-6"
+                        >
+                            <Upload className="w-4 h-4 mr-2" />
+                            Upload
+                        </Button>
                     </div>
                 </div>
             ) : (
