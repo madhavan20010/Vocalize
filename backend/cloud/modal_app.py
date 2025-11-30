@@ -51,6 +51,7 @@ def process_audio_cloud(youtube_url: str = None, audio_url: str = None):
         print(f"Downloading YouTube: {youtube_url}")
         cmd = [
             "yt-dlp",
+            "--extractor-args", "youtube:player_client=android",
             "-x", "--audio-format", "wav",
             "-o", str(output_dir / "%(title)s.%(ext)s"),
             youtube_url

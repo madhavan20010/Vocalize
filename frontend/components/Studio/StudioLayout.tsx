@@ -460,7 +460,7 @@ export default function StudioLayout() {
                                 onChange={handleFileUpload}
                                 disabled={isImporting}
                             />
-                            <Button variant="outline" className="rounded-full border-zinc-700 hover:bg-zinc-800 font-medium px-6">
+                            <Button variant="outline" className="rounded-full border-zinc-700 hover:bg-zinc-800 text-white font-medium px-6">
                                 <Upload className="w-4 h-4 mr-2" />
                                 Upload
                             </Button>
