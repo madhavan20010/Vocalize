@@ -452,15 +452,17 @@ export default function StudioLayout() {
                         >
                             Import
                         </Button>
-                        <div className="relative">
+                        <div className="relative flex items-center">
                             <input
                                 type="file"
                                 accept="audio/*"
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                 onChange={handleFileUpload}
                                 disabled={isImporting}
                             />
-                            <Button variant="outline" className="rounded-full border-zinc-700 hover:bg-zinc-800 text-white font-medium px-6">
+                            <Button
+                                className="rounded-full bg-zinc-800 text-white hover:bg-zinc-700 border border-zinc-700 font-medium px-6"
+                            >
                                 <Upload className="w-4 h-4 mr-2" />
                                 Upload
                             </Button>
